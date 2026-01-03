@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a73e8">
-    <title>ScheckIn - Attendance Scanner</title>
+    <title>Scouts CheckIn - 19th Oakville</title>
     <link rel="manifest" href="./manifest.json">
     <style>
         * {
@@ -23,31 +23,31 @@
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
         }
 
         .header {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 18px;
             color: #1a73e8;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .status-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 12px;
         }
 
         .status-online {
@@ -61,24 +61,25 @@
         }
 
         .event-selector {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 10px;
+            padding: 10px;
             background: #e8f0fe;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .event-selector label {
             display: block;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #1a73e8;
+            font-size: 13px;
         }
 
         .event-selector input {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 2px solid #1a73e8;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 14px;
             background: white;
         }
@@ -91,9 +92,9 @@
 
         .card {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
@@ -101,20 +102,27 @@
             text-align: center;
         }
 
+        .scanner-view h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
         #reader {
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            margin: 20px 0;
+            margin: 10px 0;
             background: #000;
+            max-height: 250px;
         }
 
         .scan-result {
-            padding: 15px;
+            padding: 12px;
             background: #e8f5e9;
             border-left: 4px solid #0f9d58;
-            border-radius: 8px;
-            margin-top: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
             display: none;
+            font-size: 14px;
         }
 
         .scan-result.error {
@@ -146,7 +154,7 @@
         .attendance-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid #e0e0e0;
             align-items: center;
         }
@@ -158,24 +166,25 @@
         .attendance-name {
             font-weight: 600;
             color: #333;
+            font-size: 14px;
         }
 
         .attendance-id {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
 
         .attendance-time {
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
         }
 
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
@@ -205,26 +214,26 @@
         .stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .stat-box {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 8px;
             text-align: center;
         }
 
         .stat-number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .stat-label {
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0.9;
         }
 
@@ -249,35 +258,36 @@
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             color: #666;
+            font-size: 13px;
         }
 
         .sync-queue {
             background: #fff3cd;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 12px;
             text-align: center;
         }
 
         .nav-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .nav-tab {
             flex: 1;
-            padding: 12px;
+            padding: 10px 5px;
             background: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .nav-tab.active {
@@ -285,28 +295,27 @@
             color: white;
         }
 
-        /* Bulk Check-in Styles */
         .bulk-container {
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .youth-checkbox-list {
             max-height: 300px;
             overflow-y: auto;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 6px;
+            padding: 8px;
             background: #f8f9fa;
         }
 
         .youth-checkbox-item {
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #e0e0e0;
             background: white;
-            margin-bottom: 5px;
-            border-radius: 5px;
+            margin-bottom: 4px;
+            border-radius: 4px;
         }
 
         .youth-checkbox-item:last-child {
@@ -314,9 +323,9 @@
         }
 
         .youth-checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
             cursor: pointer;
         }
 
@@ -330,10 +339,11 @@
         .youth-checkbox-name {
             font-weight: 600;
             color: #333;
+            font-size: 13px;
         }
 
         .youth-checkbox-id {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
 
@@ -349,8 +359,8 @@
 
         .bulk-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .bulk-actions button {
@@ -359,11 +369,11 @@
 
         .search-box {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 8px;
         }
 
         .search-box:focus {
@@ -373,16 +383,11 @@
 
         @media (max-width: 480px) {
             .container {
-                padding: 10px;
+                padding: 8px;
             }
             
             .stats {
                 grid-template-columns: 1fr;
-            }
-
-            .nav-tab {
-                font-size: 12px;
-                padding: 10px 5px;
             }
         }
     </style>
@@ -392,8 +397,8 @@
         <!-- Auth View -->
         <div id="authView" class="auth-view">
             <div class="card">
-                <h2>Welcome to ScheckIn</h2>
-                <p style="margin-bottom: 20px; color: #666;">Sign in with your Google account to start scanning</p>
+                <h2>Welcome to Scouts CheckIn</h2>
+                <p style="margin-bottom: 20px; color: #666; font-size: 14px;">19th Oakville - Sign in with Google to start</p>
                 <button id="signInBtn" class="btn btn-primary">Sign in with Google</button>
             </div>
         </div>
@@ -402,13 +407,13 @@
         <div id="appView" class="hidden">
             <!-- Header -->
             <div class="header">
-                <h1>ScheckIn</h1>
+                <h1>Scouts CheckIn - 19th Oakville</h1>
                 <div class="status-bar">
                     <span id="dateDisplay">Loading...</span>
                     <span id="connectionStatus" class="status-online">● Online</span>
                 </div>
                 <div id="syncQueue" class="sync-queue hidden">
-                    ⚠️ Offline Mode - <span id="queueCount">0</span> scans pending sync
+                    ⚠️ Offline - <span id="queueCount">0</span> scans pending
                 </div>
                 
                 <!-- Event Name Input -->
@@ -417,7 +422,7 @@
                     <input 
                         type="text" 
                         id="eventName" 
-                        placeholder="e.g., Weekly Meeting, Camp, Hike, Service Project"
+                        placeholder="e.g., Weekly Meeting, Camp, Hike"
                         value="Weekly Meeting"
                     />
                 </div>
@@ -426,14 +431,14 @@
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="showView('scanner')">Scanner</button>
-                <button class="nav-tab" onclick="showView('bulk')">Bulk Check-in</button>
-                <button class="nav-tab" onclick="showView('attendance')">Today's List</button>
+                <button class="nav-tab" onclick="showView('bulk')">Bulk</button>
+                <button class="nav-tab" onclick="showView('attendance')">List</button>
             </div>
 
             <!-- Scanner View -->
             <div id="scannerView" class="card">
                 <div class="scanner-view">
-                    <h2 style="margin-bottom: 15px;">Scan Youth QR Code</h2>
+                    <h2>Scan Youth QR Code</h2>
                     <div id="reader"></div>
                     <div id="scanResult" class="scan-result"></div>
                 </div>
@@ -441,7 +446,7 @@
 
             <!-- Bulk Check-in View -->
             <div id="bulkView" class="card hidden">
-                <h2 style="margin-bottom: 15px;">Bulk Check-in</h2>
+                <h2 style="margin-bottom: 10px; font-size: 16px;">Bulk Check-in</h2>
                 
                 <input 
                     type="text" 
@@ -458,7 +463,7 @@
                     
                     <div class="bulk-actions">
                         <button class="btn btn-secondary" onclick="selectAllYouth()">Select All</button>
-                        <button class="btn btn-secondary" onclick="deselectAllYouth()">Deselect All</button>
+                        <button class="btn btn-secondary" onclick="deselectAllYouth()">Clear</button>
                     </div>
                     
                     <button class="btn btn-success" onclick="bulkCheckIn()">
@@ -469,7 +474,7 @@
 
             <!-- Attendance View -->
             <div id="attendanceView" class="card hidden">
-                <h2 style="margin-bottom: 15px;">Today's Attendance</h2>
+                <h2 style="margin-bottom: 10px; font-size: 16px;">Today's Attendance</h2>
                 
                 <div class="stats">
                     <div class="stat-box">
@@ -492,10 +497,10 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div style="font-weight: 600;" id="userEmail">Loading...</div>
-                        <div style="font-size: 12px; color: #666;">Scouter</div>
+                        <div style="font-weight: 600; font-size: 13px;" id="userEmail">Loading...</div>
+                        <div style="font-size: 11px; color: #666;">Scouter</div>
                     </div>
-                    <button class="btn btn-secondary" onclick="signOut()" style="width: auto; padding: 10px 20px;">Sign Out</button>
+                    <button class="btn btn-secondary" onclick="signOut()" style="width: auto; padding: 8px 15px; font-size: 12px;">Sign Out</button>
                 </div>
             </div>
         </div>
@@ -512,6 +517,7 @@
             SPREADSHEET_ID: '1Y9ialF858KpYRfX0cf8SG1tpjIyVOAgkIwuYfhvoj7w',
             YOUTH_SHEET: 'Youth',
             ATTENDANCE_SHEET: 'Attendance',
+            FULLLIST_SHEET: 'FullList',
             CLIENT_ID: '29190602668-eop3lg6ma83reshginn31pbg38gfof19.apps.googleusercontent.com',
             API_KEY: 'AIzaSyDtpB6fnh3wTkqRcmmJDkdcs5nW-vIOPiU',
             SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
@@ -529,6 +535,25 @@
         let isScanning = false;
         let lastScannedCode = null;
         let lastScanTime = 0;
+        let scannedCodesInSession = new Set(); // Track all scans in this session
+
+        // EST Timezone Helper
+        function getESTDate() {
+            const now = new Date();
+            const estOffset = -5 * 60; // EST is UTC-5
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const estTime = new Date(utc + (estOffset * 60000));
+            return estTime;
+        }
+
+        function getESTDateString() {
+            const est = getESTDate();
+            return est.toISOString().split('T')[0];
+        }
+
+        function getESTTimestamp() {
+            return getESTDate().toISOString();
+        }
 
         // Initialize on load
         window.addEventListener('load', () => {
@@ -621,10 +646,12 @@
                 const rows = response.result.values || [];
                 youthRoster = rows.map(row => ({
                     id: row[0],
-                    name: row[1],
-                    team: row[2],
-                    active: row[3] === 'TRUE'
-                })).filter(y => y.active);
+                    firstName: row[1] || '',
+                    lastName: row[2] || '',
+                    name: `${row[1] || ''} ${row[2] || ''}`.trim(),
+                    team: row[3] || '',
+                    active: row[4] === 'TRUE'
+                })).filter(y => y.active && y.name);
                 
                 localStorage.setItem('youthRoster', JSON.stringify(youthRoster));
             } catch (err) {
@@ -638,7 +665,7 @@
 
         // Load Today's Attendance
         async function loadTodayAttendance() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getESTDateString();
             
             try {
                 const response = await gapi.client.sheets.spreadsheets.values.get({
@@ -657,22 +684,139 @@
                     }));
                 
                 updateAttendanceDisplay();
-                renderBulkCheckInList();
             } catch (err) {
                 console.error('Error loading attendance:', err);
             }
         }
 
-        // Record Attendance
+        // Update FullList Sheet
+        async function updateFullList(youthId, eventName) {
+            try {
+                const today = getESTDateString();
+                
+                // Get FullList data
+                const fullListResponse = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: `${CONFIG.FULLLIST_SHEET}!A1:Z100`,
+                });
+                
+                const fullListData = fullListResponse.result.values || [];
+                
+                // Find or create column for today's date
+                let colIndex = -1;
+                if (fullListData.length >= 2) {
+                    for (let i = 4; i < fullListData[1].length; i++) { // Start from column E (index 4)
+                        if (fullListData[1][i] === today) {
+                            colIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                // If column doesn't exist, create it
+                if (colIndex === -1) {
+                    colIndex = fullListData[1] ? fullListData[1].length : 4;
+                    const colLetter = getColumnLetter(colIndex);
+                    
+                    // Add count formula in row 1
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}1`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[`=COUNTIF(${colLetter}4:${colLetter}60,TRUE)`]]
+                        }
+                    });
+                    
+                    // Add date in row 2
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}2`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[today]]
+                        }
+                    });
+                    
+                    // Add event name in row 3
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}3`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[eventName]]
+                        }
+                    });
+                }
+                
+                // Find youth row
+                let youthRow = -1;
+                for (let i = 3; i < fullListData.length; i++) { // Start from row 4 (index 3)
+                    if (fullListData[i][0] === youthId) {
+                        youthRow = i + 1; // Convert to 1-based row number
+                        break;
+                    }
+                }
+                
+                // If youth not found, add them
+                if (youthRow === -1) {
+                    const youth = youthRoster.find(y => y.id === youthId);
+                    if (youth) {
+                        youthRow = fullListData.length + 1;
+                        await gapi.client.sheets.spreadsheets.values.append({
+                            spreadsheetId: CONFIG.SPREADSHEET_ID,
+                            range: `${CONFIG.FULLLIST_SHEET}!A${youthRow}`,
+                            valueInputOption: 'USER_ENTERED',
+                            resource: {
+                                values: [[youthId, youth.firstName, youth.lastName, youth.team]]
+                            }
+                        });
+                    }
+                }
+                
+                // Mark TRUE for this youth in the date column
+                if (youthRow > 0) {
+                    const colLetter = getColumnLetter(colIndex);
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}${youthRow}`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[true]]
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error updating FullList:', err);
+            }
+        }
+
+        // Helper: Convert column index to letter (0=A, 1=B, etc.)
+        function getColumnLetter(index) {
+            let letter = '';
+            while (index >= 0) {
+                letter = String.fromCharCode((index % 26) + 65) + letter;
+                index = Math.floor(index / 26) - 1;
+            }
+            return letter;
+        }
+
+        // Record Attendance (FIXED for offline duplicates)
         async function recordAttendance(youthId, youthName) {
             const now = Date.now();
+            
+            // Prevent rapid duplicate scans (within 3 seconds)
             if (lastScannedCode === youthId && (now - lastScanTime) < 3000) {
-                console.log('Ignoring duplicate scan');
+                return;
+            }
+            
+            // Prevent any duplicate in this session
+            if (scannedCodesInSession.has(youthId)) {
+                showScanResult(`${youthName} already scanned this session!`, 'error');
                 return;
             }
             
             if (isScanning) {
-                console.log('Already processing a scan');
                 return;
             }
             
@@ -680,9 +824,9 @@
             lastScannedCode = youthId;
             lastScanTime = now;
             
-            const timestamp = new Date().toISOString();
-            const date = new Date().toISOString().split('T')[0];
-            const time = new Date().toLocaleTimeString();
+            const timestamp = getESTTimestamp();
+            const date = getESTDateString();
+            const time = getESTDate().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
             const eventName = document.getElementById('eventName').value.trim() || 'Weekly Meeting';
             
             const record = {
@@ -693,6 +837,7 @@
                 eventName
             };
             
+            // Check if already checked in today
             const alreadyCheckedIn = todayAttendance.some(a => a.youthId === youthId);
             if (alreadyCheckedIn) {
                 showScanResult(`${youthName} already checked in today!`, 'error');
@@ -700,8 +845,12 @@
                 return;
             }
             
+            // Add to session tracking
+            scannedCodesInSession.add(youthId);
+            
             if (navigator.onLine) {
                 try {
+                    // Write to Attendance sheet
                     await gapi.client.sheets.spreadsheets.values.append({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
                         range: `${CONFIG.ATTENDANCE_SHEET}!A:E`,
@@ -710,6 +859,9 @@
                             values: [[timestamp, date, youthId, eventName, '']]
                         }
                     });
+                    
+                    // Update FullList sheet
+                    await updateFullList(youthId, eventName);
                     
                     todayAttendance.push(record);
                     showScanResult(`✓ ${youthName} checked in at ${time}`, 'success');
@@ -731,7 +883,7 @@
             
             setTimeout(() => {
                 isScanning = false;
-            }, 1000);
+            }, 1500);
         }
 
         // Bulk Check-in Functions
@@ -748,7 +900,11 @@
                 .map(youth => {
                     const isCheckedIn = todayAttendance.some(a => a.youthId === youth.id);
                     return `
-                        <div class="youth-checkbox-item ${isCheckedIn ? 'checked-in' : ''}" data-youth-id="${youth.id}" data-youth-name="${youth.name}">
+                        <div class="youth-checkbox-item ${isCheckedIn ? 'checked-in' : ''}" 
+                             data-youth-id="${youth.id}" 
+                             data-youth-name="${youth.name}"
+                             data-first-name="${youth.firstName}"
+                             data-last-name="${youth.lastName}">
                             <input 
                                 type="checkbox" 
                                 id="youth_${youth.id}" 
@@ -769,10 +925,15 @@
             const items = document.querySelectorAll('.youth-checkbox-item');
             
             items.forEach(item => {
-                const name = item.dataset.youthName.toLowerCase();
-                const id = item.dataset.youthId.toLowerCase();
+                const name = (item.dataset.youthName || '').toLowerCase();
+                const id = (item.dataset.youthId || '').toLowerCase();
+                const firstName = (item.dataset.firstName || '').toLowerCase();
+                const lastName = (item.dataset.lastName || '').toLowerCase();
                 
-                if (name.includes(searchTerm) || id.includes(searchTerm)) {
+                if (name.includes(searchTerm) || 
+                    id.includes(searchTerm) || 
+                    firstName.includes(searchTerm) || 
+                    lastName.includes(searchTerm)) {
                     item.style.display = 'flex';
                 } else {
                     item.style.display = 'none';
@@ -799,21 +960,25 @@
             }
             
             const eventName = document.getElementById('eventName').value.trim() || 'Weekly Meeting';
-            const timestamp = new Date().toISOString();
-            const date = new Date().toISOString().split('T')[0];
+            const timestamp = getESTTimestamp();
+            const date = getESTDateString();
             
             const records = [];
+            const youthIds = [];
+            
             checkboxes.forEach(cb => {
                 const youthId = cb.value;
                 const youth = youthRoster.find(y => y.id === youthId);
                 if (youth) {
                     records.push([timestamp, date, youthId, eventName, 'Bulk check-in']);
+                    youthIds.push(youthId);
                 }
             });
             
             if (records.length === 0) return;
             
             try {
+                // Write to Attendance sheet
                 await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
                     range: `${CONFIG.ATTENDANCE_SHEET}!A:E`,
@@ -822,6 +987,11 @@
                         values: records
                     }
                 });
+                
+                // Update FullList for each youth
+                for (const youthId of youthIds) {
+                    await updateFullList(youthId, eventName);
+                }
                 
                 alert(`✓ Successfully checked in ${records.length} youth!`);
                 await loadTodayAttendance();
@@ -837,8 +1007,8 @@
             html5QrCode = new Html5Qrcode("reader");
             
             const config = {
-                fps: 5,
-                qrbox: { width: 250, height: 250 },
+                fps: 3, // Reduced to 3 fps to prevent rapid duplicate scans
+                qrbox: { width: 220, height: 220 },
                 aspectRatio: 1.0
             };
             
@@ -850,7 +1020,7 @@
             ).catch(err => {
                 console.error('Scanner error:', err);
                 document.getElementById('reader').innerHTML = 
-                    '<p style="padding: 20px; color: #ea4335;">Camera access denied or not available</p>';
+                    '<p style="padding: 20px; color: #ea4335; font-size: 13px;">Camera access denied or not available</p>';
             });
         }
 
@@ -906,7 +1076,8 @@
                 const youth = youthRoster.find(y => y.id === a.youthId);
                 const time = new Date(a.timestamp).toLocaleTimeString('en-US', {
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    timeZone: 'America/New_York'
                 });
                 
                 return `
@@ -949,9 +1120,9 @@
         }
 
         function updateDate() {
-            const now = new Date();
-            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
-            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('en-US', options);
+            const est = getESTDate();
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' };
+            document.getElementById('dateDisplay').textContent = est.toLocaleDateString('en-US', options);
         }
 
         // Offline Support
@@ -984,10 +1155,20 @@
             const saved = localStorage.getItem('offlineQueue');
             if (saved) {
                 offlineQueue = JSON.parse(saved);
+                // Load scanned codes from offline queue
+                offlineQueue.forEach(record => {
+                    scannedCodesInSession.add(record.youthId);
+                });
             }
         }
 
         function addToOfflineQueue(record) {
+            // Check if already in offline queue
+            const alreadyQueued = offlineQueue.some(r => r.youthId === record.youthId && r.date === record.date);
+            if (alreadyQueued) {
+                return; // Don't add duplicates to queue
+            }
+            
             offlineQueue.push(record);
             localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
             document.getElementById('syncQueue').classList.remove('hidden');
@@ -1007,6 +1188,11 @@
                     valueInputOption: 'USER_ENTERED',
                     resource: { values }
                 });
+                
+                // Update FullList for each synced record
+                for (const record of toSync) {
+                    await updateFullList(record.youthId, record.eventName);
+                }
                 
                 offlineQueue = [];
                 localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
