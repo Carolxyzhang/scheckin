@@ -211,6 +211,11 @@
             margin-top: 10px;
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -466,7 +471,7 @@
                         <button class="btn btn-secondary" onclick="deselectAllYouth()">Clear</button>
                     </div>
                     
-                    <button class="btn btn-success" onclick="bulkCheckIn()">
+                    <button class="btn btn-success" id="bulkCheckInBtn" onclick="bulkCheckIn()">
                         Check In Selected Youth
                     </button>
                 </div>
@@ -518,8 +523,8 @@
             YOUTH_SHEET: 'Youth',
             ATTENDANCE_SHEET: 'Attendance',
             FULLLIST_SHEET: 'FullList',
-            CLIENT_ID: '29190602668-eop3lg6ma83reshginn31pbg38gfof19.apps.googleusercontent.com',
-            API_KEY: 'AIzaSyDtpB6fnh3wTkqRcmmJDkdcs5nW-vIOPiU',
+            CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com',
+            API_KEY: 'YOUR_GOOGLE_API_KEY_HERE',
             SCOPES: 'https://www.googleapis.com/auth/spreadsheets'
         };
 
@@ -535,12 +540,12 @@
         let isScanning = false;
         let lastScannedCode = null;
         let lastScanTime = 0;
-        let scannedCodesInSession = new Set(); // Track all scans in this session
+        let scannedCodesInSession = new Set();
 
         // EST Timezone Helper
         function getESTDate() {
             const now = new Date();
-            const estOffset = -5 * 60; // EST is UTC-5
+            const estOffset = -5 * 60;
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const estTime = new Date(utc + (estOffset * 60000));
             return estTime;
@@ -644,29 +649,13 @@
                 });
                 
                 const rows = response.result.values || [];
-                youthRoster = rows.map(row => {
-                    // Structure: YouthID, FullName, Team, Active, Notes
-                    const id = row[0] || '';
-                    const fullName = row[1] || '';
-                    const team = row[2] || '';
-                    const active = row[3] === 'TRUE';
-                    
-                    // Split FullName into first and last name for search
-                    const nameParts = fullName.trim().split(' ');
-                    const firstName = nameParts[0] || '';
-                    const lastName = nameParts.slice(1).join(' ') || '';
-                    
-                    return {
-                        id: id,
-                        name: fullName,
-                        firstName: firstName,
-                        lastName: lastName,
-                        team: team,
-                        active: active
-                    };
-                }).filter(y => y.active && y.id && y.name);
+                youthRoster = rows.map(row => ({
+                    id: row[0],
+                    fullName: row[1] || '',
+                    team: row[2] || '',
+                    active: row[3] === 'TRUE'
+                })).filter(y => y.active && y.fullName);
                 
-                console.log('Loaded youth roster:', youthRoster); // Debug log
                 localStorage.setItem('youthRoster', JSON.stringify(youthRoster));
             } catch (err) {
                 console.error('Error loading roster:', err);
@@ -684,7 +673,7 @@
             try {
                 const response = await gapi.client.sheets.spreadsheets.values.get({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
-                    range: `${CONFIG.ATTENDANCE_SHEET}!A2:E`,
+                    range: `${CONFIG.ATTENDANCE_SHEET}!A2:F`,
                 });
                 
                 const rows = response.result.values || [];
@@ -694,7 +683,8 @@
                         timestamp: row[0],
                         date: row[1],
                         youthId: row[2],
-                        eventName: row[3] || 'Weekly Meeting'
+                        fullName: row[3],
+                        eventName: row[4] || 'Weekly Meeting'
                     }));
                 
                 updateAttendanceDisplay();
@@ -703,8 +693,8 @@
             }
         }
 
-        // Update FullList Sheet
-        async function updateFullList(youthId, eventName) {
+        // Update FullList Sheet (INSERT new column at D, shift others right)
+        async function updateFullList(youthId, fullName, eventName) {
             try {
                 const today = getESTDateString();
                 
@@ -716,58 +706,76 @@
                 
                 const fullListData = fullListResponse.result.values || [];
                 
-                // Find or create column for today's date
-                let colIndex = -1;
-                if (fullListData.length >= 2) {
-                    for (let i = 4; i < fullListData[1].length; i++) { // Start from column E (index 4)
-                        if (fullListData[1][i] === today) {
-                            colIndex = i;
-                            break;
-                        }
-                    }
+                // Check if column D already has today's date
+                let needNewColumn = true;
+                if (fullListData.length >= 2 && fullListData[1] && fullListData[1][3] === today) {
+                    needNewColumn = false;
                 }
                 
-                // If column doesn't exist, create it
-                if (colIndex === -1) {
-                    colIndex = fullListData[1] ? fullListData[1].length : 4;
-                    const colLetter = getColumnLetter(colIndex);
-                    
-                    // Add count formula in row 1
-                    await gapi.client.sheets.spreadsheets.values.update({
+                // If need new column, insert at D and shift everything right
+                if (needNewColumn) {
+                    // Insert a new column at D (index 3)
+                    await gapi.client.sheets.spreadsheets.batchUpdate({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}1`,
-                        valueInputOption: 'USER_ENTERED',
                         resource: {
-                            values: [[`=COUNTIF(${colLetter}4:${colLetter}60,TRUE)`]]
+                            requests: [{
+                                insertDimension: {
+                                    range: {
+                                        sheetId: await getSheetId(CONFIG.FULLLIST_SHEET),
+                                        dimension: 'COLUMNS',
+                                        startIndex: 3,
+                                        endIndex: 4
+                                    },
+                                    inheritFromBefore: false
+                                }
+                            }]
                         }
                     });
                     
-                    // Add date in row 2
+                    // Add count formula in D1
                     await gapi.client.sheets.spreadsheets.values.update({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}2`,
+                        range: `${CONFIG.FULLLIST_SHEET}!D1`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[`=COUNTIFS(D4:D100,"TRUE")`]]
+                        }
+                    });
+                    
+                    // Add date in D2
+                    await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!D2`,
                         valueInputOption: 'USER_ENTERED',
                         resource: {
                             values: [[today]]
                         }
                     });
                     
-                    // Add event name in row 3
+                    // Add event name in D3
                     await gapi.client.sheets.spreadsheets.values.update({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}3`,
+                        range: `${CONFIG.FULLLIST_SHEET}!D3`,
                         valueInputOption: 'USER_ENTERED',
                         resource: {
                             values: [[eventName]]
                         }
                     });
+                    
+                    // Reload fullListData after insertion
+                    const updatedResponse = await gapi.client.sheets.spreadsheets.values.get({
+                        spreadsheetId: CONFIG.SPREADSHEET_ID,
+                        range: `${CONFIG.FULLLIST_SHEET}!A1:Z100`,
+                    });
+                    fullListData.length = 0;
+                    fullListData.push(...(updatedResponse.result.values || []));
                 }
                 
                 // Find youth row
                 let youthRow = -1;
-                for (let i = 3; i < fullListData.length; i++) { // Start from row 4 (index 3)
-                    if (fullListData[i][0] === youthId) {
-                        youthRow = i + 1; // Convert to 1-based row number
+                for (let i = 3; i < fullListData.length; i++) {
+                    if (fullListData[i] && fullListData[i][0] === youthId) {
+                        youthRow = i + 1;
                         break;
                     }
                 }
@@ -782,18 +790,17 @@
                             range: `${CONFIG.FULLLIST_SHEET}!A${youthRow}`,
                             valueInputOption: 'USER_ENTERED',
                             resource: {
-                                values: [[youthId, youth.firstName, youth.lastName, youth.team]]
+                                values: [[youthId, youth.fullName, youth.team]]
                             }
                         });
                     }
                 }
                 
-                // Mark TRUE for this youth in the date column
+                // Mark TRUE in column D for this youth
                 if (youthRow > 0) {
-                    const colLetter = getColumnLetter(colIndex);
                     await gapi.client.sheets.spreadsheets.values.update({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.FULLLIST_SHEET}!${colLetter}${youthRow}`,
+                        range: `${CONFIG.FULLLIST_SHEET}!D${youthRow}`,
                         valueInputOption: 'USER_ENTERED',
                         resource: {
                             values: [[true]]
@@ -805,28 +812,30 @@
             }
         }
 
-        // Helper: Convert column index to letter (0=A, 1=B, etc.)
-        function getColumnLetter(index) {
-            let letter = '';
-            while (index >= 0) {
-                letter = String.fromCharCode((index % 26) + 65) + letter;
-                index = Math.floor(index / 26) - 1;
+        // Helper: Get Sheet ID by name
+        async function getSheetId(sheetName) {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID
+                });
+                const sheet = response.result.sheets.find(s => s.properties.title === sheetName);
+                return sheet ? sheet.properties.sheetId : 0;
+            } catch (err) {
+                console.error('Error getting sheet ID:', err);
+                return 0;
             }
-            return letter;
         }
 
-        // Record Attendance (FIXED for offline duplicates)
-        async function recordAttendance(youthId, youthName) {
+        // Record Attendance
+        async function recordAttendance(youthId, fullName) {
             const now = Date.now();
             
-            // Prevent rapid duplicate scans (within 3 seconds)
             if (lastScannedCode === youthId && (now - lastScanTime) < 3000) {
                 return;
             }
             
-            // Prevent any duplicate in this session
             if (scannedCodesInSession.has(youthId)) {
-                showScanResult(`${youthName} already scanned this session!`, 'error');
+                showScanResult(`${fullName} already scanned this session!`, 'error');
                 return;
             }
             
@@ -847,38 +856,36 @@
                 timestamp,
                 date,
                 youthId,
-                youthName,
+                fullName,
                 eventName
             };
             
-            // Check if already checked in today
             const alreadyCheckedIn = todayAttendance.some(a => a.youthId === youthId);
             if (alreadyCheckedIn) {
-                showScanResult(`${youthName} already checked in today!`, 'error');
+                showScanResult(`${fullName} already checked in today!`, 'error');
                 isScanning = false;
                 return;
             }
             
-            // Add to session tracking
             scannedCodesInSession.add(youthId);
             
             if (navigator.onLine) {
                 try {
-                    // Write to Attendance sheet
+                    // Write to Attendance sheet (Column order: Timestamp, EventDate, YouthID, FullName, EventName, Notes)
                     await gapi.client.sheets.spreadsheets.values.append({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.ATTENDANCE_SHEET}!A:E`,
+                        range: `${CONFIG.ATTENDANCE_SHEET}!A:F`,
                         valueInputOption: 'USER_ENTERED',
                         resource: {
-                            values: [[timestamp, date, youthId, eventName, '']]
+                            values: [[timestamp, date, youthId, fullName, eventName, '']]
                         }
                     });
                     
                     // Update FullList sheet
-                    await updateFullList(youthId, eventName);
+                    await updateFullList(youthId, fullName, eventName);
                     
                     todayAttendance.push(record);
-                    showScanResult(`✓ ${youthName} checked in at ${time}`, 'success');
+                    showScanResult(`✓ ${fullName} checked in at ${time}`, 'success');
                     updateAttendanceDisplay();
                     renderBulkCheckInList();
                     
@@ -888,11 +895,11 @@
                 } catch (err) {
                     console.error('Error recording attendance:', err);
                     addToOfflineQueue(record);
-                    showScanResult(`⚠️ Saved offline: ${youthName}`, 'error');
+                    showScanResult(`⚠️ Saved offline: ${fullName}`, 'error');
                 }
             } else {
                 addToOfflineQueue(record);
-                showScanResult(`⚠️ Saved offline: ${youthName}`, 'error');
+                showScanResult(`⚠️ Saved offline: ${fullName}`, 'error');
             }
             
             setTimeout(() => {
@@ -910,15 +917,13 @@
             }
             
             listDiv.innerHTML = youthRoster
-                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => a.fullName.localeCompare(b.fullName))
                 .map(youth => {
                     const isCheckedIn = todayAttendance.some(a => a.youthId === youth.id);
                     return `
                         <div class="youth-checkbox-item ${isCheckedIn ? 'checked-in' : ''}" 
                              data-youth-id="${youth.id}" 
-                             data-youth-name="${youth.name}"
-                             data-first-name="${youth.firstName}"
-                             data-last-name="${youth.lastName}">
+                             data-youth-name="${youth.fullName}">
                             <input 
                                 type="checkbox" 
                                 id="youth_${youth.id}" 
@@ -926,7 +931,7 @@
                                 ${isCheckedIn ? 'disabled' : ''}
                             />
                             <label for="youth_${youth.id}" class="youth-checkbox-label">
-                                <span class="youth-checkbox-name">${youth.name}</span>
+                                <span class="youth-checkbox-name">${youth.fullName}</span>
                                 <span class="youth-checkbox-id">${youth.id}</span>
                             </label>
                         </div>
@@ -941,13 +946,8 @@
             items.forEach(item => {
                 const name = (item.dataset.youthName || '').toLowerCase();
                 const id = (item.dataset.youthId || '').toLowerCase();
-                const firstName = (item.dataset.firstName || '').toLowerCase();
-                const lastName = (item.dataset.lastName || '').toLowerCase();
                 
-                if (name.includes(searchTerm) || 
-                    id.includes(searchTerm) || 
-                    firstName.includes(searchTerm) || 
-                    lastName.includes(searchTerm)) {
+                if (name.includes(searchTerm) || id.includes(searchTerm)) {
                     item.style.display = 'flex';
                 } else {
                     item.style.display = 'none';
@@ -973,6 +973,11 @@
                 return;
             }
             
+            // Disable button during processing
+            const btn = document.getElementById('bulkCheckInBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            
             const eventName = document.getElementById('eventName').value.trim() || 'Weekly Meeting';
             const timestamp = getESTTimestamp();
             const date = getESTDateString();
@@ -984,18 +989,22 @@
                 const youthId = cb.value;
                 const youth = youthRoster.find(y => y.id === youthId);
                 if (youth) {
-                    records.push([timestamp, date, youthId, eventName, 'Bulk check-in']);
-                    youthIds.push(youthId);
+                    records.push([timestamp, date, youthId, youth.fullName, eventName, 'Bulk check-in']);
+                    youthIds.push({ id: youthId, fullName: youth.fullName });
                 }
             });
             
-            if (records.length === 0) return;
+            if (records.length === 0) {
+                btn.disabled = false;
+                btn.textContent = 'Check In Selected Youth';
+                return;
+            }
             
             try {
                 // Write to Attendance sheet
                 await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
-                    range: `${CONFIG.ATTENDANCE_SHEET}!A:E`,
+                    range: `${CONFIG.ATTENDANCE_SHEET}!A:F`,
                     valueInputOption: 'USER_ENTERED',
                     resource: {
                         values: records
@@ -1003,16 +1012,20 @@
                 });
                 
                 // Update FullList for each youth
-                for (const youthId of youthIds) {
-                    await updateFullList(youthId, eventName);
+                for (const youth of youthIds) {
+                    await updateFullList(youth.id, youth.fullName, eventName);
                 }
                 
                 alert(`✓ Successfully checked in ${records.length} youth!`);
                 await loadTodayAttendance();
                 deselectAllYouth();
+                renderBulkCheckInList(); // Re-render to show checked-in youth as disabled
             } catch (err) {
                 console.error('Error with bulk check-in:', err);
                 alert('Error: Could not complete bulk check-in. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Check In Selected Youth';
             }
         }
 
@@ -1021,7 +1034,7 @@
             html5QrCode = new Html5Qrcode("reader");
             
             const config = {
-                fps: 3, // Reduced to 3 fps to prevent rapid duplicate scans
+                fps: 3,
                 qrbox: { width: 220, height: 220 },
                 aspectRatio: 1.0
             };
@@ -1039,8 +1052,6 @@
         }
 
         function onScanSuccess(decodedText) {
-            console.log('QR Code scanned:', decodedText); // Debug log
-            
             const parts = decodedText.split(':');
             
             if (parts[0] !== 'ScheckIn' || parts.length < 3) {
@@ -1049,25 +1060,19 @@
             }
             
             const youthId = parts[1];
-            console.log('Looking for youth ID:', youthId); // Debug log
-            console.log('Youth roster size:', youthRoster.length); // Debug log
-            
             const youth = youthRoster.find(y => y.id === youthId);
             
             if (!youth) {
-                console.log('Youth not found. Available IDs:', youthRoster.map(y => y.id)); // Debug log
                 showScanResult(`Youth ID ${youthId} not found in roster`, 'error');
                 return;
             }
             
-            console.log('Found youth:', youth); // Debug log
-            
             if (!youth.active) {
-                showScanResult(`${youth.name}'s QR code is deactivated`, 'error');
+                showScanResult(`${youth.fullName}'s QR code is deactivated`, 'error');
                 return;
             }
             
-            recordAttendance(youthId, youth.name);
+            recordAttendance(youthId, youth.fullName);
         }
 
         function onScanError(err) {
@@ -1095,7 +1100,6 @@
             
             const listDiv = document.getElementById('attendanceList');
             listDiv.innerHTML = todayAttendance.map(a => {
-                const youth = youthRoster.find(y => y.id === a.youthId);
                 const time = new Date(a.timestamp).toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -1105,7 +1109,7 @@
                 return `
                     <div class="attendance-item">
                         <div>
-                            <div class="attendance-name">${youth?.name || a.youthId}</div>
+                            <div class="attendance-name">${a.fullName || a.youthId}</div>
                             <div class="attendance-id">${a.youthId} • ${a.eventName}</div>
                         </div>
                         <div class="attendance-time">${time}</div>
@@ -1177,7 +1181,6 @@
             const saved = localStorage.getItem('offlineQueue');
             if (saved) {
                 offlineQueue = JSON.parse(saved);
-                // Load scanned codes from offline queue
                 offlineQueue.forEach(record => {
                     scannedCodesInSession.add(record.youthId);
                 });
@@ -1185,10 +1188,9 @@
         }
 
         function addToOfflineQueue(record) {
-            // Check if already in offline queue
             const alreadyQueued = offlineQueue.some(r => r.youthId === record.youthId && r.date === record.date);
             if (alreadyQueued) {
-                return; // Don't add duplicates to queue
+                return;
             }
             
             offlineQueue.push(record);
@@ -1201,19 +1203,18 @@
             if (offlineQueue.length === 0) return;
             
             const toSync = [...offlineQueue];
-            const values = toSync.map(r => [r.timestamp, r.date, r.youthId, r.eventName, 'Synced from offline']);
+            const values = toSync.map(r => [r.timestamp, r.date, r.youthId, r.fullName, r.eventName, 'Synced from offline']);
             
             try {
                 await gapi.client.sheets.spreadsheets.values.append({
                     spreadsheetId: CONFIG.SPREADSHEET_ID,
-                    range: `${CONFIG.ATTENDANCE_SHEET}!A:E`,
+                    range: `${CONFIG.ATTENDANCE_SHEET}!A:F`,
                     valueInputOption: 'USER_ENTERED',
                     resource: { values }
                 });
                 
-                // Update FullList for each synced record
                 for (const record of toSync) {
-                    await updateFullList(record.youthId, record.eventName);
+                    await updateFullList(record.youthId, record.fullName, record.eventName);
                 }
                 
                 offlineQueue = [];
