@@ -644,15 +644,29 @@
                 });
                 
                 const rows = response.result.values || [];
-                youthRoster = rows.map(row => ({
-                    id: row[0],
-                    firstName: row[1] || '',
-                    lastName: row[2] || '',
-                    name: `${row[1] || ''} ${row[2] || ''}`.trim(),
-                    team: row[3] || '',
-                    active: row[4] === 'TRUE'
-                })).filter(y => y.active && y.name);
+                youthRoster = rows.map(row => {
+                    // Structure: YouthID, FullName, Team, Active, Notes
+                    const id = row[0] || '';
+                    const fullName = row[1] || '';
+                    const team = row[2] || '';
+                    const active = row[3] === 'TRUE';
+                    
+                    // Split FullName into first and last name for search
+                    const nameParts = fullName.trim().split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
+                    
+                    return {
+                        id: id,
+                        name: fullName,
+                        firstName: firstName,
+                        lastName: lastName,
+                        team: team,
+                        active: active
+                    };
+                }).filter(y => y.active && y.id && y.name);
                 
+                console.log('Loaded youth roster:', youthRoster); // Debug log
                 localStorage.setItem('youthRoster', JSON.stringify(youthRoster));
             } catch (err) {
                 console.error('Error loading roster:', err);
@@ -1025,6 +1039,8 @@
         }
 
         function onScanSuccess(decodedText) {
+            console.log('QR Code scanned:', decodedText); // Debug log
+            
             const parts = decodedText.split(':');
             
             if (parts[0] !== 'ScheckIn' || parts.length < 3) {
@@ -1033,12 +1049,18 @@
             }
             
             const youthId = parts[1];
+            console.log('Looking for youth ID:', youthId); // Debug log
+            console.log('Youth roster size:', youthRoster.length); // Debug log
+            
             const youth = youthRoster.find(y => y.id === youthId);
             
             if (!youth) {
+                console.log('Youth not found. Available IDs:', youthRoster.map(y => y.id)); // Debug log
                 showScanResult(`Youth ID ${youthId} not found in roster`, 'error');
                 return;
             }
+            
+            console.log('Found youth:', youth); // Debug log
             
             if (!youth.active) {
                 showScanResult(`${youth.name}'s QR code is deactivated`, 'error');
