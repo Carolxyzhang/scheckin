@@ -680,6 +680,20 @@
             document.getElementById('authView').classList.add('hidden');
             document.getElementById('appView').classList.remove('hidden');
             
+            // Load the flag from localStorage
+            const savedFlag = localStorage.getItem('fullListColumnCreatedToday');
+            const today = getESTDateString();
+            
+            // Only use saved flag if it's for today
+            if (savedFlag === today) {
+                fullListColumnCreatedToday = savedFlag;
+                console.log('Loaded flag from localStorage:', savedFlag);
+            } else {
+                fullListColumnCreatedToday = null;
+                localStorage.removeItem('fullListColumnCreatedToday');
+                console.log('Cleared old flag, today is:', today);
+            }
+            
             await loadYouthRoster();
             await loadTodayAttendance();
             
@@ -750,13 +764,27 @@
         }
 
         // Update FullList Sheet (INSERT new column at D, shift others right)
+        // WITH QUEUE TO PREVENT RACE CONDITIONS
         async function updateFullList(youthId, fullName, eventName) {
+            // Queue this update to prevent parallel execution
+            fullListUpdateQueue = fullListUpdateQueue.then(async () => {
+                return await updateFullListInternal(youthId, fullName, eventName);
+            }).catch(err => {
+                console.error('FullList update error:', err);
+            });
+            
+            return fullListUpdateQueue;
+        }
+
+        async function updateFullListInternal(youthId, fullName, eventName) {
             try {
                 const today = getESTDateString();
                 
+                console.log(`Updating FullList for ${youthId}, today=${today}, columnCreated=${fullListColumnCreatedToday}`);
+                
                 // Check if we already created a column for today in this session
                 if (fullListColumnCreatedToday === today) {
-                    // Column already exists, just mark the youth
+                    console.log('Column already exists for today, just marking youth');
                     await markYouthInFullList(youthId, fullName);
                     return;
                 }
@@ -768,15 +796,19 @@
                 });
                 
                 const fullListData = fullListResponse.result.values || [];
+                console.log('FullList row 2, col D:', fullListData[1] ? fullListData[1][3] : 'undefined');
                 
                 // Check if column D already has today's date in row 2
                 let needNewColumn = true;
                 if (fullListData.length >= 2 && fullListData[1] && fullListData[1][3] === today) {
+                    console.log('Column D already has today\'s date');
                     needNewColumn = false;
                     fullListColumnCreatedToday = today; // Mark that column exists
+                    localStorage.setItem('fullListColumnCreatedToday', today); // Persist to localStorage
                     
                     // Update event name in D3 if different
                     if (fullListData.length >= 3 && fullListData[2] && fullListData[2][3] !== eventName) {
+                        console.log('Updating event name in D3');
                         await gapi.client.sheets.spreadsheets.values.update({
                             spreadsheetId: CONFIG.SPREADSHEET_ID,
                             range: `${CONFIG.FULLLIST_SHEET}!D3`,
@@ -790,6 +822,8 @@
                 
                 // If need new column, insert at D and shift everything right
                 if (needNewColumn) {
+                    console.log('Creating new column at D');
+                    
                     // Insert a new column at D (index 3)
                     await gapi.client.sheets.spreadsheets.batchUpdate({
                         spreadsheetId: CONFIG.SPREADSHEET_ID,
@@ -807,6 +841,8 @@
                             }]
                         }
                     });
+                    
+                    console.log('Column inserted, adding headers');
                     
                     // Add count formula in D1
                     await gapi.client.sheets.spreadsheets.values.update({
@@ -840,13 +876,15 @@
                     
                     // Mark that we created column for today
                     fullListColumnCreatedToday = today;
+                    localStorage.setItem('fullListColumnCreatedToday', today); // Persist to localStorage
+                    console.log('Column created and flag set to:', today);
                 }
                 
                 // Now mark the youth
                 await markYouthInFullList(youthId, fullName);
                 
             } catch (err) {
-                console.error('Error updating FullList:', err);
+                console.error('Error in updateFullListInternal:', err);
             }
         }
 
