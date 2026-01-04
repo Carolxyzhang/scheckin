@@ -545,9 +545,8 @@
         // EST Timezone Helper
         function getESTDate() {
             const now = new Date();
-            const estOffset = -5 * 60;
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const estTime = new Date(utc + (estOffset * 60000));
+            // Convert to EST (UTC-5)
+            const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
             return estTime;
         }
 
@@ -706,10 +705,22 @@
                 
                 const fullListData = fullListResponse.result.values || [];
                 
-                // Check if column D already has today's date
+                // Check if column D already has today's date in row 2
                 let needNewColumn = true;
                 if (fullListData.length >= 2 && fullListData[1] && fullListData[1][3] === today) {
                     needNewColumn = false;
+                    
+                    // Update event name in D3 if different (handles multiple events same day)
+                    if (fullListData.length >= 3 && fullListData[2] && fullListData[2][3] !== eventName) {
+                        await gapi.client.sheets.spreadsheets.values.update({
+                            spreadsheetId: CONFIG.SPREADSHEET_ID,
+                            range: `${CONFIG.FULLLIST_SHEET}!D3`,
+                            valueInputOption: 'USER_ENTERED',
+                            resource: {
+                                values: [[eventName]]
+                            }
+                        });
+                    }
                 }
                 
                 // If need new column, insert at D and shift everything right
@@ -796,16 +807,20 @@
                     }
                 }
                 
-                // Mark TRUE in column D for this youth
+                // Mark TRUE in column D for this youth (only if not already marked)
                 if (youthRow > 0) {
-                    await gapi.client.sheets.spreadsheets.values.update({
-                        spreadsheetId: CONFIG.SPREADSHEET_ID,
-                        range: `${CONFIG.FULLLIST_SHEET}!D${youthRow}`,
-                        valueInputOption: 'USER_ENTERED',
-                        resource: {
-                            values: [[true]]
-                        }
-                    });
+                    // Check if already marked TRUE
+                    const currentValue = fullListData[youthRow - 1] && fullListData[youthRow - 1][3];
+                    if (currentValue !== true && currentValue !== 'TRUE') {
+                        await gapi.client.sheets.spreadsheets.values.update({
+                            spreadsheetId: CONFIG.SPREADSHEET_ID,
+                            range: `${CONFIG.FULLLIST_SHEET}!D${youthRow}`,
+                            valueInputOption: 'USER_ENTERED',
+                            resource: {
+                                values: [[true]]
+                            }
+                        });
+                    }
                 }
             } catch (err) {
                 console.error('Error updating FullList:', err);
